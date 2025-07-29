@@ -1,0 +1,79 @@
+# This script will Auto pkg, run pipeline scan using jar, upload the results to the Github issues
+
+name: Veracode Auto-Packaging and Pipeline Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions: 
+    security-events: write
+
+jobs:
+  veracode-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Veracode CLI and Package Application
+        run: |
+          curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+          ./veracode package -vas . --output verascan
+
+          # Check if the verascan directory exists
+          if [ ! -d "verascan" ]; then
+            echo "Error: verascan directory not found."
+            exit 1
+          fi
+
+      - name: Veracode Pipeline Scan
+        continue-on-error: true
+        env:
+          VERACODE_API_KEY_ID: ${{ secrets.VID }}
+          VERACODE_API_KEY_SECRET: ${{ secrets.VKEY }}
+        run: |
+          ./veracode policy get "Al-Test" --format json # Optional: replace with your actual policy
+          for file in verascan/*; do
+            if [ -f "$file" ]; then
+              echo "Scanning $file..."
+              curl -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
+              unzip pipeline-scan-LATEST.zip pipeline-scan.jar
+              java -jar pipeline-scan.jar --veracode_api_id "${VERACODE_API_KEY_ID}" --veracode_api_key "${VERACODE_API_KEY_SECRET}" --file "$file" --fail_on_severity "Very High, High" || true
+            fi
+          done
+
+      - name: Move filtered results to verascan folder
+        run: |
+          mkdir -p verascan
+          cp filtered_results.json verascan/filtered_results.json
+
+      - name: Upload filtered scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: filtered-results
+          path: verascan/filtered_results.json
+          
+  import-issues:
+    needs: veracode-scan
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: get scan results
+        uses: actions/download-artifact@v4
+        with:
+          name: filtered-results
+
+      - name: import flaws as issues
+        uses: veracode/veracode-flaws-to-issues@v2.2.25
+        with:
+          scan-results-json: 'filtered_results.json'
+          source-base-path-1: "^com/veracode:src/main/java/com/veracode"
+          source-base-path-2: "^WEB-INF:src/main/webapp/WEB-INF"
+
+# checkag
