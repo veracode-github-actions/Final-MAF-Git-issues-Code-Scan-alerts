@@ -7,23 +7,22 @@ on:
     branches: [ main ]
 
 jobs:
-  runs-on: ubuntu-latest
-  name: Veracode Container/IaC/Secrets scan
+  veracode-scan:
+    runs-on: ubuntu-latest
+    name: Veracode Container/IaC/Secrets scan
 
-  steps:
-    - name: checkout
-      uses: actions/checkout@v3
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
 
-    - name: Veracode Container/IaC/Secrets action step
-      uses: veracode/container_iac_secrets_scanning@v1.0.1
-      with:
-        vid: ${{ secrets.VID }}
-        vkey: ${{ secrets.VKEY }}
-        command: "scan" 
-        type: "directory"
-        source: "./"
-        format: "json"
-        debug: false
-        fail_build: true
-
-          
+      - name: Veracode Container/IaC/Secrets action step
+        uses: veracode/container_iac_secrets_scanning@v1.0.1
+        with:
+          vid: ${{ secrets.VID }}
+          vkey: ${{ secrets.VKEY }}
+          command: "scan" 
+          type: "directory"
+          source: "./"
+          format: "json"
+          debug: false
+          fail_build: true
