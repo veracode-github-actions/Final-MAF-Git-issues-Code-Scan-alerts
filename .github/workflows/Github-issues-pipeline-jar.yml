@@ -49,7 +49,7 @@ jobs:
       - name: Move filtered results to verascan folder
         run: |
           mkdir -p verascan
-          cp filtered_results.json verascan/results.json
+          cp results.json verascan/results.json
 
       - name: Upload filtered scan results
         if: always()
