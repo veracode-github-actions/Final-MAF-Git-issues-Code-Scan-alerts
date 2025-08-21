@@ -50,6 +50,7 @@ jobs:
         run: |
           mkdir -p verascan
           cp results.json verascan/results.json
+          ls -ltra
 
       - name: Upload filtered scan results
         if: always()
