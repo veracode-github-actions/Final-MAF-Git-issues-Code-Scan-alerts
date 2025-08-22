@@ -8,8 +8,8 @@ on:
       - main
   pull_request:
 
-permissions: 
-    security-events: write
+# permissions: 
+#     security-events: write
 
 jobs:
   veracode-scan:
