@@ -75,7 +75,7 @@ jobs:
       - name: import flaws as issues
         uses: veracode/veracode-flaws-to-issues@v2.2.25
         with:
-          scan-results-json: 'verascan/results.json'
+          scan-results-json: 'results.json'
           source-base-path-1: "^com/veracode:src/main/java/com/veracode"
           source-base-path-2: "^WEB-INF:src/main/webapp/WEB-INF"
 
