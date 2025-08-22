@@ -51,6 +51,8 @@ jobs:
           mkdir -p verascan
           cp results.json verascan/
           ls -ltra
+          cd verascan
+          ls -ltra 
 
       - name: Upload results.json artifact
         if: always()
